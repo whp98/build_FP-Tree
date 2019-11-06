@@ -1,6 +1,3 @@
-import com.sun.source.tree.Tree;
-
-import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -34,7 +31,7 @@ public class GenFP {
         //最小支持度
         GenFP genFP = new GenFP();
         genFP.setInfile("aaa.txt");
-        genFP.setMinSuport(140);
+        genFP.setMinSuport(3);
         root=genFP.genTree();
         System.out.println("树中的节点数目是："+genFP.getTreeNodeCount());
 //        //验证树的结构
@@ -53,6 +50,7 @@ public class GenFP {
         for (String a: maxpaths){
             System.out.println(a);
         }
+
     }
 
     //通过使用一个算法给出从根到叶子的节点数最多一条路径,并显示其中除根以外每个节点上的支持度计数
@@ -217,78 +215,110 @@ public class GenFP {
             TreeNode a=aStack.pop();
             cStack.push(a);
         }
-        return strPathsToRootWithGigree(cStack);
+        return strPathsToRootWithDigree(cStack);
     }
+
     //找到最大支持度的路径
-    private List<String> findMaxDegreePath(TreeNode root){
+    private List<String> findMaxDegreePath(TreeNode root) {
+        Map<String, Integer> allPath = Traverse(root);
+        int max = 0;
+        for (int value : allPath.values()) {
+            if (value > max) {
+                max = value;
+            }
+        }
+        List<String> keyList = new ArrayList<>();
+        for (String key : allPath.keySet()) {
+            if (allPath.get(key).equals(max)) {
+                keyList.add(key);
+            }
+        }
+        return keyList;
+    }
+
+    //遍历整棵树
+    private Map<String,Integer> Traverse(TreeNode root){
+        Map<String,Integer> allPath=new HashMap<>();
         //主栈，用于计算处理路径
         Deque<TreeNode> aStack = new ArrayDeque();
         //副栈，用于存储待处理节点
         Deque<TreeNode> bStack = new ArrayDeque();
         aStack.push(root);
-        while(!isAllNoneChild(aStack)){
-            putMaxChildInStack(aStack,bStack);
-            putMaxChildInStack(bStack,aStack);
-        }
-        //将所有节点取出来
-        Deque<TreeNode> cStack = new ArrayDeque();
         while(!aStack.isEmpty()){
-            TreeNode a=aStack.pop();
-            cStack.push(a);
-        }
-        return strPathsToRootWithGigree(cStack);
-    }
-
-    private void putMaxChildInStack(Deque<TreeNode> from,Deque<TreeNode> to){
-        int size = from.size();
-        while(!from.isEmpty()){
-            TreeNode aa = from.pop();
-            List<TreeNode> a = aa.getChildren();
-            if (a != null) {
-                List<TreeNode> max = findMaxNode(a);
-                for (TreeNode b : max) {
-                    to.push(b);
+            TreeNode aa = aStack.pop();
+            if (aa.getChildren()!=null){
+                for (TreeNode a:aa.getChildren()){
+                    bStack.push(a);
                 }
             }else{
-                if (size==1){
-                    to.push(aa);
-                }
+                allPath.put(strPathsToRootWithDigree(aa),intPathsToRootDigree(aa));
+            }
+            while(!bStack.isEmpty()){
+                aStack.push(bStack.pop());
             }
         }
+        return allPath;
     }
 
-    //获取孩子中最大的节点
+
+
+    //获取孩子中支持度最大的节点
     private List<TreeNode> findMaxNode(List<TreeNode> treeNodes){
-        int max = treeNodes.get(0).getCount();
+        int max = calculateDigree(treeNodes.get(0));
         for (TreeNode a:treeNodes){
-            if(a.getCount()>max){
-                max=a.getCount();
+            if(calculateDigree(a)>max){
+                max=calculateDigree(a);
             }
         }
         ArrayList<TreeNode> maxNodes = new ArrayList<>();
         for (TreeNode a:treeNodes){
-            if (a.getCount()==max){
+            if (calculateDigree(a)==max){
                 maxNodes.add(a);
             }
         }
         return maxNodes;
     }
+    //计算节点支持度
+    private int calculateDigree(TreeNode node){
+        return node.getCount();
+    }
     //返回栈中每个节点到根节点的路径和支持度
-    private List<String> strPathsToRootWithGigree(Deque<TreeNode> res){
+    private List<String> strPathsToRootWithDigree(Deque<TreeNode> res){
         ArrayList<String> paths= new ArrayList<String>();
         while(!res.isEmpty()){
             //路径
             String path = "";
             TreeNode a=res.pop();
-            path = a.getName()+"(0)"+path;
+            path = a.getName()+"("+calculateDigree(a)+")"+path;
 
             while (a.getParent()!=null){
                 a=a.getParent();
-                path = a.getName()+"("+a.getChildren().size()+")->"+path;
+                path = a.getName()+"("+calculateDigree(a)+")->"+path;
             }
             paths.add(path);
         }
         return paths;
+    }
+    //返回一个节点的支持度
+    private String strPathsToRootWithDigree(TreeNode res){
+            String path = "";
+            path = res.getName()+"("+calculateDigree(res)+")"+path;
+
+            while (res.getParent()!=null){
+                res=res.getParent();
+                path = res.getName()+"("+calculateDigree(res)+")->"+path;
+            }
+        return path;
+    }
+    //返回一个节点支持度之和
+    private int intPathsToRootDigree(TreeNode res){
+        int sum = 0;
+        sum = res.getCount();
+        while (res.getParent()!=null) {
+            res = res.getParent();
+            sum = res.getCount() + sum;
+        }
+        return sum;
     }
 
     //从from栈中将每个节点的子节点放入to栈中
@@ -320,4 +350,6 @@ public class GenFP {
         }
         return true;
     }
+
+
 }
