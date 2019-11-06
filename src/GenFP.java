@@ -34,7 +34,7 @@ public class GenFP {
         //最小支持度
         GenFP genFP = new GenFP();
         genFP.setInfile("aaa.txt");
-        genFP.setMinSuport(3);
+        genFP.setMinSuport(140);
         root=genFP.genTree();
         System.out.println("树中的节点数目是："+genFP.getTreeNodeCount());
 //        //验证树的结构
@@ -46,6 +46,11 @@ public class GenFP {
         System.out.println("打印最长路径：");
         List<String> paths = genFP.findLongWay(root);
         for (String a: paths){
+            System.out.println(a);
+        }
+        System.out.println("打印最大支持度路径：");
+        List<String> maxpaths = genFP.findMaxDegreePath(root);
+        for (String a: maxpaths){
             System.out.println(a);
         }
     }
@@ -198,9 +203,7 @@ public class GenFP {
     }
 
     private List<String> findLongWay(TreeNode root){
-        //主栈，用于计算处理路径
         Deque<TreeNode> aStack = new ArrayDeque();
-        //副栈，用于存储待处理节点
         Deque<TreeNode> bStack = new ArrayDeque();
         aStack.push(root);
         //倒腾一下
@@ -216,7 +219,60 @@ public class GenFP {
         }
         return strPathsToRootWithGigree(cStack);
     }
+    //找到最大支持度的路径
+    private List<String> findMaxDegreePath(TreeNode root){
+        //主栈，用于计算处理路径
+        Deque<TreeNode> aStack = new ArrayDeque();
+        //副栈，用于存储待处理节点
+        Deque<TreeNode> bStack = new ArrayDeque();
+        aStack.push(root);
+        while(!isAllNoneChild(aStack)){
+            putMaxChildInStack(aStack,bStack);
+            putMaxChildInStack(bStack,aStack);
+        }
+        //将所有节点取出来
+        Deque<TreeNode> cStack = new ArrayDeque();
+        while(!aStack.isEmpty()){
+            TreeNode a=aStack.pop();
+            cStack.push(a);
+        }
+        return strPathsToRootWithGigree(cStack);
+    }
 
+    private void putMaxChildInStack(Deque<TreeNode> from,Deque<TreeNode> to){
+        int size = from.size();
+        while(!from.isEmpty()){
+            TreeNode aa = from.pop();
+            List<TreeNode> a = aa.getChildren();
+            if (a != null) {
+                List<TreeNode> max = findMaxNode(a);
+                for (TreeNode b : max) {
+                    to.push(b);
+                }
+            }else{
+                if (size==1){
+                    to.push(aa);
+                }
+            }
+        }
+    }
+
+    //获取孩子中最大的节点
+    private List<TreeNode> findMaxNode(List<TreeNode> treeNodes){
+        int max = treeNodes.get(0).getCount();
+        for (TreeNode a:treeNodes){
+            if(a.getCount()>max){
+                max=a.getCount();
+            }
+        }
+        ArrayList<TreeNode> maxNodes = new ArrayList<>();
+        for (TreeNode a:treeNodes){
+            if (a.getCount()==max){
+                maxNodes.add(a);
+            }
+        }
+        return maxNodes;
+    }
     //返回栈中每个节点到根节点的路径和支持度
     private List<String> strPathsToRootWithGigree(Deque<TreeNode> res){
         ArrayList<String> paths= new ArrayList<String>();
