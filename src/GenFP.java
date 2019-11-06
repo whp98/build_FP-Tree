@@ -31,7 +31,7 @@ public class GenFP {
         //最小支持度
         GenFP genFP = new GenFP();
         genFP.setInfile("aaa.txt");
-        genFP.setMinSuport(3);
+        genFP.setMinSuport(140);
         root=genFP.genTree();
         System.out.println("树中的节点数目是："+genFP.getTreeNodeCount());
 //        //验证树的结构
@@ -230,7 +230,7 @@ public class GenFP {
         List<String> keyList = new ArrayList<>();
         for (String key : allPath.keySet()) {
             if (allPath.get(key).equals(max)) {
-                keyList.add(key);
+                keyList.add("支持度和:"+max+"\t路径:"+key);
             }
         }
         return keyList;
@@ -261,23 +261,6 @@ public class GenFP {
     }
 
 
-
-    //获取孩子中支持度最大的节点
-    private List<TreeNode> findMaxNode(List<TreeNode> treeNodes){
-        int max = calculateDigree(treeNodes.get(0));
-        for (TreeNode a:treeNodes){
-            if(calculateDigree(a)>max){
-                max=calculateDigree(a);
-            }
-        }
-        ArrayList<TreeNode> maxNodes = new ArrayList<>();
-        for (TreeNode a:treeNodes){
-            if (calculateDigree(a)==max){
-                maxNodes.add(a);
-            }
-        }
-        return maxNodes;
-    }
     //计算节点支持度
     private int calculateDigree(TreeNode node){
         return node.getCount();
@@ -350,6 +333,4 @@ public class GenFP {
         }
         return true;
     }
-
-
 }
