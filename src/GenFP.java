@@ -280,11 +280,11 @@ public class GenFP {
             //路径
             String path = "";
             TreeNode a=res.pop();
-            path = a.getName()+"("+a.getCount()+")"+path;
+            path = a.getName()+"(0)"+path;
 
             while (a.getParent()!=null){
                 a=a.getParent();
-                path = a.getName()+"("+a.getCount()+")->"+path;
+                path = a.getName()+"("+a.getChildren().size()+")->"+path;
             }
             paths.add(path);
         }
