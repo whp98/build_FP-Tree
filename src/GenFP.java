@@ -1,3 +1,6 @@
+import com.sun.source.tree.Tree;
+
+import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -6,21 +9,22 @@ import java.util.*;
 public class GenFP {
     private int minSuport;
     private String infile;
-    private int treeNodeCount=2;
+    private int treeNodeCount=1;
+    private List<List<String>> pathList;
     //增加节点计数
-    public void increaseNodeCount(){
+    private void increaseNodeCount(){
         treeNodeCount++;
     }
     //获取节点计数
-    public int getTreeNodeCount() {
+    int getTreeNodeCount() {
         return treeNodeCount;
     }
     //设置最小项数
-    public void setMinSuport(int minSuport) {
+    void setMinSuport(int minSuport) {
         this.minSuport = minSuport;
     }
     //设置数据文件
-    public void setInfile(String infile) {
+    void setInfile(String infile) {
         this.infile = infile;
     }
 
@@ -29,25 +33,39 @@ public class GenFP {
         TreeNode root;
         //最小支持度
         GenFP genFP = new GenFP();
-        genFP.setInfile("trolley.txt");
+        genFP.setInfile("aaa.txt");
         genFP.setMinSuport(3);
         root=genFP.genTree();
         System.out.println("树中的节点数目是："+genFP.getTreeNodeCount());
+//        //验证树的结构
+//        List<TreeNode> child = root.getChildren();
+//        System.out.println(child.size());
+//        for (TreeNode ss: child){
+//            System.out.println(ss.getName());
+//        }
+        System.out.println("打印最长路径：");
+        List<String> paths = genFP.findLongWay(root);
+        for (String a: paths){
+            System.out.println(a);
+        }
     }
 
+    //通过使用一个算法给出从根到叶子的节点数最多一条路径,并显示其中除根以外每个节点上的支持度计数
+
     //建树操作
-    public TreeNode genTree(){
+    TreeNode genTree(){
         TreeNode root;
         List<List<String>> trans = this.readTransRocords(new String[] { this.infile });
         long begin = System.currentTimeMillis();
         root=buildFPTree(trans,this.minSuport);
         long end = System.currentTimeMillis();
         System.out.println("建树用时：" + (end - begin)+"ms");
+        root.setName("root");
         return root;
     }
 
     //从文件中读取事务
-    public  List<List<String>> readTransRocords(String[] filenames) {
+    private List<List<String>> readTransRocords(String[] filenames) {
         Set<String> set = new HashSet<String>();
         List<List<String>> transaction = null;
         if (filenames.length > 0) {
@@ -87,7 +105,7 @@ public class GenFP {
     }
 
     //建立树
-    public TreeNode buildFPTree(List<List<String>> transRecords,int minSuport) {
+    private TreeNode buildFPTree(List<List<String>> transRecords, int minSuport) {
         //计算每项的频数
         final Map<String, Integer> freqMap = getFrequency(transRecords);
         //将每一项事务排序
@@ -179,4 +197,71 @@ public class GenFP {
         }
     }
 
+    private List<String> findLongWay(TreeNode root){
+        //主栈，用于计算处理路径
+        Deque<TreeNode> aStack = new ArrayDeque();
+        //副栈，用于存储待处理节点
+        Deque<TreeNode> bStack = new ArrayDeque();
+        aStack.push(root);
+        //倒腾一下
+        while(!isAllNoneChild(aStack)){
+            putChildInStack(aStack,bStack);
+            putChildInStack(bStack,aStack);
+        }
+        //将所有节点取出来
+        Deque<TreeNode> cStack = new ArrayDeque();
+        while(!aStack.isEmpty()){
+            TreeNode a=aStack.pop();
+            cStack.push(a);
+        }
+        return strPathsToRootWithGigree(cStack);
+    }
+
+    //返回栈中每个节点到根节点的路径和支持度
+    private List<String> strPathsToRootWithGigree(Deque<TreeNode> res){
+        ArrayList<String> paths= new ArrayList<String>();
+        while(!res.isEmpty()){
+            //路径
+            String path = "";
+            TreeNode a=res.pop();
+            path = a.getName()+"("+a.getCount()+")"+path;
+
+            while (a.getParent()!=null){
+                a=a.getParent();
+                path = a.getName()+"("+a.getCount()+")->"+path;
+            }
+            paths.add(path);
+        }
+        return paths;
+    }
+
+    //从from栈中将每个节点的子节点放入to栈中
+    private void putChildInStack(Deque<TreeNode> from,Deque<TreeNode> to){
+        int size = from.size();
+        while(!from.isEmpty()){
+            TreeNode aa = from.pop();
+            List<TreeNode> a = aa.getChildren();
+            if (a != null) {
+                for (TreeNode b : a) {
+                    to.push(b);
+                }
+            }else{
+                if (size==1){
+                    to.push(aa);
+                }
+            }
+        }
+    }
+
+    //判断栈中是否每个节点都没有子节点
+    private boolean isAllNoneChild(Deque<TreeNode> stack){
+        if (!stack.isEmpty()){
+            for (TreeNode a:stack){
+                if(a.getChildren()!=null){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 }
