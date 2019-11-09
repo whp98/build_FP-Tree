@@ -25,6 +25,10 @@ public class GenFP {
         this.infile = infile;
     }
 
+    public int getMinSuport() {
+        return minSuport;
+    }
+
     public static void main(String[] args) {
         //树的根节点
         TreeNode root;
@@ -32,6 +36,7 @@ public class GenFP {
         GenFP genFP = new GenFP();
         genFP.setInfile("aaa.txt");
         genFP.setMinSuport(140);
+        System.out.println("最小支持度："+genFP.getMinSuport());
         root=genFP.genTree();
         System.out.println("树中的节点数目是："+genFP.getTreeNodeCount());
 //        //验证树的结构

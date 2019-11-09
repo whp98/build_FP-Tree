@@ -1,15 +1,7 @@
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- *
- * @Description: FP树的节点
- * @Author orisun
- * @Date Jun 23, 2016
- */
 class TreeNode {
-    /**计数**/
-    private static int newCount;
     /**节点名称**/
     private String name;
     /**频数**/
@@ -68,12 +60,7 @@ class TreeNode {
             setChildren(list);
         } else {
             getChildren().add(child);
-            newCount++;
         }
-    }
-
-    public static int getNewCount() {
-        return newCount;
     }
 
     public TreeNode findChild(String name) {
